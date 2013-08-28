@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ApiConnectorJS - Test Suite</title>
+    <link rel="stylesheet" type="text/css" href="../libs/jasmine/jasmine.css">
+</head>
+<body>
+    <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script type="text/javascript" src="../libs/jquery-mockjax.js"></script>
+    <script type="text/javascript" src="../libs/jasmine/jasmine.js"></script>
+    <script type="text/javascript" src="../libs/jasmine/jasmine-html.js"></script>
+    <script type="text/javascript" src="../libs/jasmine/jasmine-jquery.js"></script>
+
+    <!-- include src files here... -->
+    <script type="text/javascript" src="../src/nativeShims.js"></script>
+    <script type="text/javascript" src="../src/bindingProvider.js"></script>
+    <script type="text/javascript" src="../src/system.js"></script>
+    <script type="text/javascript" src="../src/eventAggregator.js"></script>
+    <script type="text/javascript" src="../src/http.js"></script>
+    <script type="text/javascript" src="../src/api.js"></script>
+    <script type="text/javascript" src="../src/listener.js"></script>
+
+    <!-- include tests files here... -->
+    <script type="text/javascript" src="nativeShims.tests.js"></script>
+    <script type="text/javascript" src="bindingProvider.tests.js"></script>
+    <script type="text/javascript" src="system.tests.js"></script>
+    <script type="text/javascript" src="eventAggregator.tests.js"></script>
+    <script type="text/javascript" src="http.tests.js"></script>
+    <script type="text/javascript" src="api.tests.js"></script>
+    <script type="text/javascript" src="listener.tests.js"></script>
+
+    <script type="text/javascript">
+        (function() {
+            var jasmineEnv = jasmine.getEnv();
+            jasmineEnv.updateInterval = 1000;
+
+            var htmlReporter = new jasmine.HtmlReporter();
+
+            jasmineEnv.addReporter(htmlReporter);
+
+            jasmineEnv.specFilter = function(spec) {
+                return htmlReporter.specFilter(spec);
+            };
+
+            var currentWindowOnload = window.onload;
+
+            window.onload = function() {
+                if (currentWindowOnload) {
+                    currentWindowOnload();
+                }
+                execJasmine();
+            };
+
+            function execJasmine() {
+                jasmineEnv.execute();
+            }
+
+        })();
+    </script>
+</body>
+</html>
