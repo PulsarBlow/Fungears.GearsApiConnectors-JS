@@ -11,8 +11,8 @@ The complete documentation of this library can be found on our [Developers Hub](
 
 ###### Current version : 0.1.1
 
-* [Developers version](../dist/fungears.connectors.js)
-* [Production version](/dist/fungears.connectors.min.js)
+* [Developers version](dist/fungears.connectors.js)
+* [Production version](dist/fungears.connectors.min.js)
 
 ###### Build environment requirements
 
