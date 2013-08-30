@@ -1,17 +1,18 @@
-**GearsApi Connectors** is a Javascript library that makes it easier to plug your applications to the the Fungears Gamification Engine API (aka GearsApi)
+**GearsApi Connectors** is a Javascript library that makes it easier to plug your applications to the our gamification engine API (aka GearsApi)
 
 ## Getting Started
 ##### Totally new to Fungears and gamification ?  
-Check our [website](http://fungears.com) for a presentation of who we are.
+Check our [website](http://fungears.com/) for a presentation of who we are and what we do.
 
 ##### Documentation of this library
 The complete documentation of this library can be found on our [Developers Hub](http://devhub.fungears.com)
 
 ## Downloading or building the library
 
-###### Current version : 0.1.0
+###### Current version : 0.1.1
 
-[Downloads](/dist)
+* [Developers version](/dist/fungears.connectors.js)
+* [Production version](/dist/fungears.connectors.min.js)
 
 ###### Build environment requirements
 
@@ -19,9 +20,9 @@ This library is written in TypeScript (a typed superset of JavaScript) and compi
 
 If you want to build the source you need to install: 
 
-* TypeScript v0.9.1.1 : http://www.typescriptlang.org/
-* Node.js : http://nodejs.org/
-* GruntJS : http://http://gruntjs.com/
+* [TypeScript v0.9.1.1](http://www.typescriptlang.org/)
+* [Node.js](http://nodejs.org/)
+* [GruntJS](http://http://gruntjs.com/)
 
 ## Running the tests
 

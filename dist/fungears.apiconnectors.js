@@ -1,3 +1,8 @@
+/*! GearsApiConnectorsJS - version: 0.1.1 - revision: 20130830
+    A cross-device, cross-platform client framework written in JavaScript and designed to make connecting to our gamification engine easy.
+    Author: Fungears <support@fungears.com> (http://fungears.com)
+    Repository: https://github.com/Fungears/GearsApiConnectors-JS
+    Licence: BSD-3-Clause (http://opensource.org/licenses/BSD-3-Clause) */
 var fungears;
 (function (fungears) {
     (function (connectors) {
@@ -71,6 +76,7 @@ var fungears;
     })(fungears.connectors || (fungears.connectors = {}));
     var connectors = fungears.connectors;
 })(fungears || (fungears = {}));
+
 var fungears;
 (function (fungears) {
     (function (connectors) {
@@ -161,41 +167,50 @@ var fungears;
     })(fungears.connectors || (fungears.connectors = {}));
     var connectors = fungears.connectors;
 })(fungears || (fungears = {}));
+
 var fungears;
 (function (fungears) {
     (function (connectors) {
-        var defaultBindingName = "data-fungears";
+        var httpMethods = {
+            GET: 'GET',
+            POST: 'POST'
+        };
+        var contentTypes = {
+            JSON: "application/json; charset=utf-8",
+            FORM_URLENCODED: "application/x-www-form-urlencoded; charset=utf-8"
+        };
 
-        function preProcessBinding(bindingString) {
-            if (!bindingString)
-                return null;
-            var str = bindingString.trim();
+        function executeAjaxRequest(url, httpMethod, data, contentType) {
+            if (typeof contentType === "undefined") { contentType = contentTypes.JSON; }
+            connectors.system.guard.argumentNotNullOrEmpty(url, "url");
+            connectors.system.guard.argumentNotNullOrEmpty(httpMethod, "httpMethod");
+            connectors.system.log("Executing ajax call ({0} : {1})".format(httpMethod, url));
 
-            if (str.charCodeAt(0) === 123)
-                str = str.slice(1, -1);
-
-            var elements = str.split(':');
-            if (!elements || elements.length !== 2 || !elements[0] || !elements[1])
-                return null;
-            var result = {
-                eventTypes: elements[0].trim(),
-                actionKey: elements[1].trim()
-            };
-            return result;
+            return $.ajax({
+                url: url,
+                type: httpMethod.toUpperCase(),
+                data: contentType === contentTypes.FORM_URLENCODED ? data : JSON.stringify(data),
+                contentType: contentType,
+                dataType: "json"
+            });
         }
-        connectors.bindingProvider = {
-            bindingName: defaultBindingName,
-            getBinding: function (node) {
-                var bindingString = connectors.bindingProvider.getBindingString(node);
-                return bindingString ? preProcessBinding(bindingString) : null;
+        connectors.http = {
+            get: function (url, query) {
+                return executeAjaxRequest(url, httpMethods.GET, query);
             },
-            getBindingString: function (node) {
-                return node.getAttribute ? node.getAttribute(connectors.bindingProvider.bindingName) : '';
+            postJson: function (url, data) {
+                connectors.system.guard.argumentNotNull(data, "data");
+                return executeAjaxRequest(url, httpMethods.POST, data);
+            },
+            postForm: function (url, data) {
+                connectors.system.guard.argumentNotNull(data, "data");
+                return executeAjaxRequest(url, httpMethods.POST, data, contentTypes.FORM_URLENCODED);
             }
         };
     })(fungears.connectors || (fungears.connectors = {}));
     var connectors = fungears.connectors;
 })(fungears || (fungears = {}));
+
 var fungears;
 (function (fungears) {
     (function (connectors) {
@@ -283,48 +298,43 @@ var fungears;
     })(fungears.connectors || (fungears.connectors = {}));
     var connectors = fungears.connectors;
 })(fungears || (fungears = {}));
+
 var fungears;
 (function (fungears) {
     (function (connectors) {
-        var httpMethods = {
-            GET: 'GET',
-            POST: 'POST'
-        };
-        var contentTypes = {
-            JSON: "application/json; charset=utf-8",
-            FORM_URLENCODED: "application/x-www-form-urlencoded; charset=utf-8"
-        };
+        var defaultBindingName = "data-fungears";
 
-        function executeAjaxRequest(url, httpMethod, data, contentType) {
-            if (typeof contentType === "undefined") { contentType = contentTypes.JSON; }
-            connectors.system.guard.argumentNotNullOrEmpty(url, "url");
-            connectors.system.guard.argumentNotNullOrEmpty(httpMethod, "httpMethod");
-            connectors.system.log("Executing ajax call ({0} : {1})".format(httpMethod, url));
+        function preProcessBinding(bindingString) {
+            if (!bindingString)
+                return null;
+            var str = bindingString.trim();
 
-            return $.ajax(url, {
-                type: httpMethod.toUpperCase(),
-                data: contentType === contentTypes.FORM_URLENCODED ? data : JSON.stringify(data),
-                contentType: contentType,
-                dataType: "json",
-                processData: false
-            });
+            if (str.charCodeAt(0) === 123)
+                str = str.slice(1, -1);
+
+            var elements = str.split(':');
+            if (!elements || elements.length !== 2 || !elements[0] || !elements[1])
+                return null;
+            var result = {
+                eventTypes: elements[0].trim(),
+                actionKey: elements[1].trim()
+            };
+            return result;
         }
-        connectors.http = {
-            get: function (url, query) {
-                return executeAjaxRequest(url, httpMethods.GET, query);
+        connectors.bindingProvider = {
+            bindingName: defaultBindingName,
+            getBinding: function (node) {
+                var bindingString = connectors.bindingProvider.getBindingString(node);
+                return bindingString ? preProcessBinding(bindingString) : null;
             },
-            postJson: function (url, data) {
-                connectors.system.guard.argumentNotNull(data, "data");
-                return executeAjaxRequest(url, httpMethods.POST, data);
-            },
-            postForm: function (url, data) {
-                connectors.system.guard.argumentNotNull(data, "data");
-                return executeAjaxRequest(url, httpMethods.POST, data, contentTypes.FORM_URLENCODED);
+            getBindingString: function (node) {
+                return node.getAttribute ? node.getAttribute(connectors.bindingProvider.bindingName) : '';
             }
         };
     })(fungears.connectors || (fungears.connectors = {}));
     var connectors = fungears.connectors;
 })(fungears || (fungears = {}));
+
 var fungears;
 (function (fungears) {
     (function (connectors) {
@@ -401,6 +411,7 @@ var fungears;
     })(fungears.connectors || (fungears.connectors = {}));
     var connectors = fungears.connectors;
 })(fungears || (fungears = {}));
+
 var fungears;
 (function (fungears) {
     (function (connectors) {
