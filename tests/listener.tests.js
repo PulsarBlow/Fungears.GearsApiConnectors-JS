@@ -118,7 +118,7 @@ describe("Testing listener module", function() {
 		runs(function() {
 			expect(actionKey).toBe('DERFS34D');
 			expect(notifications).not.toBeFalsy();
-			expect(notifications.isArray()).toBe(true);
+			expect(Array.isArray(notifications)).toBe(true);
 			expect(notifications.length).toBe(1);
 			expect(notifications[0].type).toBe(1);
 			expect(notifications[0].label).toBe("level_changed");
@@ -221,7 +221,7 @@ describe("Testing listener module", function() {
 		runs(function() {
 			expect(context.actionKey).toBe('DERFS34D');
 			expect(context.notifications).not.toBeFalsy();
-			expect(context.notifications.isArray()).toBe(true);
+			expect(Array.isArray(context.notifications)).toBe(true);
 			expect(context.notifications.length).toBe(1);
 			expect(context.notifications[0].type).toBe(1);
 			expect(context.notifications[0].label).toBe("level_changed");
