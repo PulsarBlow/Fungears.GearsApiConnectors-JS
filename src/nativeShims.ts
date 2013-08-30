@@ -22,10 +22,10 @@ module fungears.connectors {
 		};
 	}
 
-	if(typeof Object.isArray !== 'function') {
-		Object.prototype.isArray = function () {
-			return (Object.prototype.toString.call(this) === '[object Array]');
-		}
+	if(!Array.isArray) {
+		Array.isArray = function (obj) {
+			return Object.prototype.toString.call(obj) === "[object Array]";
+		};
 	}
 
 	// From https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/keys

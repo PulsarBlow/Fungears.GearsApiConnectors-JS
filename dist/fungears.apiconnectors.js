@@ -25,9 +25,9 @@ var fungears;
             };
         }
 
-        if (typeof Object.isArray !== 'function') {
-            Object.prototype.isArray = function () {
-                return (Object.prototype.toString.call(this) === '[object Array]');
+        if (!Array.isArray) {
+            Array.isArray = function (obj) {
+                return Object.prototype.toString.call(obj) === "[object Array]";
             };
         }
 
@@ -143,7 +143,7 @@ var fungears;
         };
 
         connectors.system = {
-            version: '0.1.0',
+            version: '0.1.1',
             noop: noop,
             log: noop,
             error: noop,
@@ -398,18 +398,6 @@ var fungears;
             return Api;
         })();
         connectors.Api = Api;
-    })(fungears.connectors || (fungears.connectors = {}));
-    var connectors = fungears.connectors;
-})(fungears || (fungears = {}));
-var fungears;
-(function (fungears) {
-    (function (connectors) {
-        var Dispatcher = (function () {
-            function Dispatcher() {
-            }
-            return Dispatcher;
-        })();
-        connectors.Dispatcher = Dispatcher;
     })(fungears.connectors || (fungears.connectors = {}));
     var connectors = fungears.connectors;
 })(fungears || (fungears = {}));

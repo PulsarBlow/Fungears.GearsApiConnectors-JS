@@ -7,7 +7,6 @@
 /// <reference path="eventAggregator.ts" />
 /// <reference path="http.ts" />
 /// <reference path="api.ts" />
-/// <reference path="dispatcher.ts" />
 /// <reference path="listener.ts" />
 
 //grunt-start

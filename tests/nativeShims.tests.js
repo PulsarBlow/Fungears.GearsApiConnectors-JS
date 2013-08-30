@@ -12,8 +12,8 @@ describe("Testing native shims", function() {
 	});
 
 	it("IsArray Tests", function() {
-		expect([].isArray()).toBe(true);
-		expect({}.isArray()).toBe(false);
-		expect("".isArray()).toBe(false);
+		expect(Array.isArray([])).toBe(true);
+		expect(Array.isArray({})).toBe(false);
+		expect(Array.isArray("")).toBe(false);
 	});
 });
