@@ -22,7 +22,7 @@ If you want to build the source you need to install:
 
 * [TypeScript v0.9.1.1](http://www.typescriptlang.org/)
 * [Node.js](http://nodejs.org/)
-* [GruntJS](http://http://gruntjs.com/)
+* [GruntJS](http://gruntjs.com/)
 
 ## Running the tests
 
