@@ -15,12 +15,12 @@ module fungears.connectors {
         system.guard.argumentNotNullOrEmpty(httpMethod, "httpMethod");
         system.log("Executing ajax call ({0} : {1})".format(httpMethod, url));
 
-        return $.ajax(url, {
-            type: httpMethod.toUpperCase(),
+        return $.ajax({
+	        url: url,
+	        type: httpMethod.toUpperCase(),
             data: contentType === contentTypes.FORM_URLENCODED ? data : JSON.stringify(data),
             contentType: contentType,
-            dataType: "json",
-            processData: false
+            dataType: "json"
         });
     }
     export var http = {
