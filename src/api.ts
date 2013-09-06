@@ -1,7 +1,7 @@
 ///<reference path="_references.ts" />
 module fungears.connectors {
     var defaults: IApiOptions = {
-            apiUrl: 'https://gears.api.fungears.com/games',
+            apiUrl: 'https://gears.fungears.io/games',
             authUrl: null,
             gameId: null,
             oauth2: {
