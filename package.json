@@ -1,6 +1,6 @@
 {
   "name": "GearsApiConnectorsJS",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A cross-device, cross-platform client framework written in JavaScript and designed to make connecting to our gamification engine easy.",
   "author": "Fungears <support@fungears.com> (http://fungears.com)",
   "directories": {

@@ -1,4 +1,4 @@
-/*! GearsApiConnectorsJS - version: 0.1.1 - revision: 20130830
+/*! GearsApiConnectorsJS - version: 0.1.2 - revision: 20130906
     A cross-device, cross-platform client framework written in JavaScript and designed to make connecting to our gamification engine easy.
     Author: Fungears <support@fungears.com> (http://fungears.com)
     Repository: https://github.com/Fungears/GearsApiConnectors-JS
@@ -339,7 +339,7 @@ var fungears;
 (function (fungears) {
     (function (connectors) {
         var defaults = {
-            apiUrl: 'https://gears.api.fungears.com/games',
+            apiUrl: 'https://gears.fungears.io/games',
             authUrl: null,
             gameId: null,
             oauth2: {
