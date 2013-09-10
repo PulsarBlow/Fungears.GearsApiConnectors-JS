@@ -1,5 +1,5 @@
-describe("Test for bindindProvider module", function() {
-	var bindingProvider = fungears.connectors.bindingProvider;
+describe("Test for BindingProvider module", function() {
+	var bindingProvider = new fungears.connectors.BindingProvider();
 
 	it("Get binding test", function() {
 		// DOM Fixtures
@@ -11,7 +11,16 @@ describe("Test for bindindProvider module", function() {
 		expect(binding.eventTypes).toBe('click');
 		expect(binding.actionKey).toBe('DELKDKS3');
 	});
-
+    it("Get binding test with case mismatch", function() {
+        // DOM Fixtures
+        setFixtures(sandbox());
+        var $sandbox = $("#sandbox");
+        $sandbox.attr(bindingProvider.bindingName, "clIck DblClick: DELKDKS3");
+        var binding = bindingProvider.getBinding($sandbox.get(0));
+        expect(binding).not.toBeNull();
+        expect(binding.eventTypes).toBe('click dblclick');
+        expect(binding.actionKey).toBe('DELKDKS3');
+    });
 	it("Get complex binding test", function() {
 		// DOM Fixtures
 		setFixtures(sandbox());
