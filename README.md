@@ -9,7 +9,7 @@ The complete documentation of this library can be found on our [Developers Hub](
 
 ## Downloading or building the library
 
-###### Current version : 0.1.1
+###### Current version : 0.1.3
 
 [Downloads](dist/)
 
