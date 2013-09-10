@@ -17,11 +17,26 @@ The complete documentation of this library can be found on our [Developers Hub](
 
 This library is written in TypeScript (a typed superset of JavaScript) and compiled into a pure Javascript distribution by a GruntJS task.
 
-If you want to build the source you need to install: 
+To build the minified and css versions of the library you will need [node](http://nodejs.org) and [TypeScript v0.9.1.1](http://www.typescriptlang.org/) installed.
 
-* [TypeScript v0.9.1.1](http://www.typescriptlang.org/)
-* [Node.js](http://nodejs.org/)
-* [GruntJS](http://gruntjs.com/)
+Install the [Grunt](http://gruntjs.com/) command line. This might require `sudo`.
+
+```shell
+npm install -g grunt-cli
+```
+
+Then, from the main project folder run this command. This should not require `sudo`.
+
+```shell
+npm install
+```
+
+At this point the dependencies have been installed and you can build the library.
+
+```shell
+grunt
+```
+
 
 ## Running the tests
 

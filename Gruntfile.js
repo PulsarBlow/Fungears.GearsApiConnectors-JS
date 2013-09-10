@@ -8,7 +8,6 @@ module.exports = function (grunt) {
             dist: {
                 src: ["./src/**/*.ts"],
                 reference: "./src/_references.ts",
-                //out: 'dist/fungears.apiconnectors.js',
                 options: {
                     target: 'es5',
                     module: 'amd',

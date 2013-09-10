@@ -1,4 +1,4 @@
-/*! GearsApiConnectorsJS - version: 0.1.2 - revision: 20130906
+/*! GearsApiConnectorsJS - version: 0.1.3 - revision: 20130910
     A cross-device, cross-platform client framework written in JavaScript and designed to make connecting to our gamification engine easy.
     Author: Fungears <support@fungears.com> (http://fungears.com)
     Repository: https://github.com/Fungears/GearsApiConnectors-JS
@@ -274,25 +274,28 @@ var fungears;
         })();
         connectors.EventAggregator = EventAggregator;
 
-        var globalAggregator = new EventAggregator();
+        var singleton = new EventAggregator();
         connectors.pubSub = {
             events: {
                 gameAction: 'fungears:gameAction',
                 gameNotification: 'fungears:gameNotification'
             },
             publish: function (event, message) {
-                return globalAggregator.publish(event, message);
+                return singleton.publish(event, message);
             },
             subscribe: function (event, func) {
-                return globalAggregator.subscribe(event, func);
+                return singleton.subscribe(event, func);
             },
             unsubscribe: function (subId) {
-                return globalAggregator.unsubscribe(subId);
+                return singleton.unsubscribe(subId);
             },
             includesIn: function (targetObject) {
-                targetObject.subscribe = globalAggregator.subscribe;
-                targetObject.unsubscribe = globalAggregator.unsubscribe;
-                targetObject.publish = globalAggregator.publish;
+                targetObject.subscribe = singleton.subscribe;
+                targetObject.unsubscribe = singleton.unsubscribe;
+                targetObject.publish = singleton.publish;
+            },
+            reset: function () {
+                return singleton.reset();
             }
         };
     })(fungears.connectors || (fungears.connectors = {}));
@@ -316,21 +319,27 @@ var fungears;
             if (!elements || elements.length !== 2 || !elements[0] || !elements[1])
                 return null;
             var result = {
-                eventTypes: elements[0].trim(),
+                eventTypes: elements[0].toLowerCase().trim(),
                 actionKey: elements[1].trim()
             };
             return result;
         }
-        connectors.bindingProvider = {
-            bindingName: defaultBindingName,
-            getBinding: function (node) {
-                var bindingString = connectors.bindingProvider.getBindingString(node);
-                return bindingString ? preProcessBinding(bindingString) : null;
-            },
-            getBindingString: function (node) {
-                return node.getAttribute ? node.getAttribute(connectors.bindingProvider.bindingName) : '';
+
+        var BindingProvider = (function () {
+            function BindingProvider(bindingName) {
+                if (typeof bindingName === "undefined") { bindingName = defaultBindingName; }
+                this.bindingName = bindingName || defaultBindingName;
             }
-        };
+            BindingProvider.prototype.getBinding = function (node) {
+                var bindingString = this.getBindingString(node);
+                return bindingString ? preProcessBinding(bindingString) : null;
+            };
+            BindingProvider.prototype.getBindingString = function (node) {
+                return node.getAttribute ? node.getAttribute(this.bindingName) : '';
+            };
+            return BindingProvider;
+        })();
+        connectors.BindingProvider = BindingProvider;
     })(fungears.connectors || (fungears.connectors = {}));
     var connectors = fungears.connectors;
 })(fungears || (fungears = {}));
@@ -416,33 +425,38 @@ var fungears;
 (function (fungears) {
     (function (connectors) {
         var defaults = {
-            defaultBindingAttributeName: 'data-fungears',
-            apiOptions: {},
+            defaultBindingName: 'data-fungears',
+            eventTypes: 'click dblclick',
+            delegatedTarget: document,
             gamerId: null,
-            gamerApiKey: null
+            gamerApiKey: null,
+            apiOptions: {}
         };
 
         var Listener = (function () {
             function Listener() {
+                this.subscriptions = [];
+                this.disposed = false;
                 this.api = new connectors.Api();
             }
             Listener.prototype.init = function (options) {
                 this.settings = ($.extend(true, {}, defaults, options));
                 this.validateSettings();
                 this.api.init(this.settings.apiOptions);
+                this.bindingProvider = new connectors.BindingProvider(this.settings.defaultBindingName);
 
-                connectors.pubSub.subscribe(connectors.pubSub.events.gameAction, this.handleGameAction.bind(this));
-                connectors.pubSub.subscribe(connectors.pubSub.events.gameNotification, this.handleGameNotification.bind(this));
+                this.subscriptions.push(connectors.pubSub.subscribe(connectors.pubSub.events.gameAction, this.handleGameAction.bind(this)));
+                this.subscriptions.push(connectors.pubSub.subscribe(connectors.pubSub.events.gameNotification, this.handleGameNotification.bind(this)));
             };
 
             Listener.prototype.listen = function () {
-                var $targets = $('[' + connectors.bindingProvider.bindingName + ']');
+                var bindingProvider = this.bindingProvider, $targets = $('[' + bindingProvider.bindingName + ']');
 
                 if (!$targets || !$targets.length)
                     return false;
                 $targets.each(function (index, element) {
                     var $this = $(this);
-                    var binding = connectors.bindingProvider.getBinding(this);
+                    var binding = bindingProvider.getBinding(this);
                     if (binding) {
                         $this.on(binding.eventTypes, function () {
                             connectors.pubSub.publish(connectors.pubSub.events.gameAction, binding.actionKey);
@@ -451,6 +465,19 @@ var fungears;
                 });
                 return true;
             };
+
+            Listener.prototype.delegatedListen = function () {
+                var eventTypes = this.settings.eventTypes.toLowerCase(), bindingProvider = this.bindingProvider;
+                $(this.settings.delegatedTarget).on(this.settings.eventTypes, '[' + bindingProvider.bindingName + ']', function (event) {
+                    if (eventTypes.indexOf(event.type) === -1)
+                        return true;
+                    var binding = bindingProvider.getBinding(this);
+                    connectors.pubSub.publish(fungears.connectors.pubSub.events.gameAction, binding.actionKey);
+                    return true;
+                });
+                return true;
+            };
+
             Listener.prototype.listenTo = function ($obj, eventType, actionKey) {
                 if (!$obj || !$obj.length || !eventType)
                     return false;
@@ -464,7 +491,7 @@ var fungears;
                 if (typeof context === "undefined") { context = this; }
                 if (!callback || typeof callback !== 'function')
                     return false;
-                connectors.pubSub.subscribe(connectors.pubSub.events.gameAction, callback.bind(context));
+                this.subscriptions.push(connectors.pubSub.subscribe(connectors.pubSub.events.gameAction, callback.bind(context)));
                 return true;
             };
 
@@ -472,11 +499,24 @@ var fungears;
                 if (typeof context === "undefined") { context = this; }
                 if (!callback || typeof callback !== 'function')
                     return false;
-                connectors.pubSub.subscribe(connectors.pubSub.events.gameNotification, callback.bind(context));
+                this.subscriptions.push(connectors.pubSub.subscribe(connectors.pubSub.events.gameNotification, callback.bind(context)));
                 return true;
             };
 
-            Listener.prototype.handleGameAction = function (event, actionKey) {
+            Listener.prototype.dispose = function () {
+                if (this.disposed)
+                    return;
+                var i = 0;
+                for (i; i < this.subscriptions.length; i++) {
+                    connectors.pubSub.unsubscribe(this.subscriptions[i]);
+                }
+                this.subscriptions = [];
+                this.api = null;
+                this.bindingProvider = null;
+                this.disposed = true;
+            };
+
+            Listener.prototype.handleGameAction = function (actionKey) {
                 connectors.system.log("Handling event", connectors.pubSub.events.gameAction, actionKey);
                 this.api.postEvent({
                     gamerId: this.settings.gamerId,
@@ -488,7 +528,7 @@ var fungears;
                     connectors.system.log("Api post event", connectors.pubSub.events.gameAction, jqXHR, textStatus, errorThrown);
                 });
             };
-            Listener.prototype.handleGameNotification = function (event, notification) {
+            Listener.prototype.handleGameNotification = function (notification) {
                 connectors.system.log("Handling event", connectors.pubSub.events.gameNotification, notification);
             };
             Listener.prototype.validateSettings = function () {
