@@ -14,8 +14,12 @@ describe("Testing listener module", function() {
 			gamerId: 1,
 			gamerApiKey: 'ABCEDEDEDEDEDEDEDEDEDED'
 		},
-		pubsub = fungears.connectors.pubsub,
+		pubSub = fungears.connectors.pubSub,
 		Listener = fungears.connectors.Listener;
+
+    afterEach(function() {
+        pubSub.reset();
+    });
 
 	it("Testing Settings validation - Success", function() {
 		var listener = new Listener(),
@@ -73,7 +77,7 @@ describe("Testing listener module", function() {
 
 	});
 
-	it("Listen test", function() {
+    it("Listen test", function() {
 		var listener = new Listener(),
 			listening,
 			flag1 = false, flag2 = false,
@@ -125,7 +129,9 @@ describe("Testing listener module", function() {
 			expect(notifications[0].levelId).toBe(2);
 			expect(notifications[0].previousLevel).toBe(6);
 			expect(notifications[0].currentLevel).toBe(7);
+            pubSub.reset();
 		});
+
 
 	});
 	it("Listen test with context switch", function() {
@@ -166,10 +172,10 @@ describe("Testing listener module", function() {
 
 		runs(function() {
 			expect(context.actionKey).toBe('DERFS34D');
+            pubSub.reset();
 		});
 
 	});
-
 	it("Listen test with advanced binding and context switch", function() {
 		var listener = new Listener(),
 			listening,
@@ -231,7 +237,6 @@ describe("Testing listener module", function() {
 		});
 
 	});
-
 	it("ListenTo test", function() {
 		var listener = new Listener(),
 			listening,
@@ -268,4 +273,127 @@ describe("Testing listener module", function() {
 			expect(actionKey).toBe('DERFS34D');
 		});
 	});
+
+    it("DelegatedListen test", function() {
+        var listener = new Listener(),
+            listening,
+            flag1 = false, flag2 = false,
+            actionKey, notifications;
+
+        $.mockjax({
+            url: "/api/*",
+            responseTime: 0,
+            contentType: 'text/json',
+            responseText: [{"type":1,"label":"level_changed","levelId":2,"previousLevel":6,"currentLevel":7,"diff":1}]
+        });
+
+        // DOM Fixtures
+        setFixtures(sandbox());
+        $button = $("<button data-fungearsABCDE='click: DERFS34D'></button>");
+        $("#sandbox").append($button);
+
+        listener.onGameAction(function(eventArgs) {
+            actionKey = eventArgs;
+            flag1 = true;
+        });
+        listener.onGameNotification(function(eventArgs) {
+            notifications = eventArgs;
+            flag2 = true;
+        });
+
+        var optionOverrides = $.extend(true, {}, options, { eventTypes: 'click', delegatedTarget:'#sandbox', defaultBindingName: 'data-fungearsABCDE'});
+        listener.init(optionOverrides);
+        listening = listener.delegatedListen();
+        expect(listening).toBe(true);
+
+
+        runs(function() {
+            $button.trigger('click');
+        });
+
+        waitsFor(function() {
+            return flag1;
+        }, "Failed to receive gameAction event", 100);
+        waitsFor(function() {
+            return flag2;
+        }, "Failed to receive gameNotification event", 100);
+
+        runs(function() {
+            expect(actionKey).toBe('DERFS34D');
+            expect(notifications).not.toBeFalsy();
+            expect(Array.isArray(notifications)).toBe(true);
+            expect(notifications.length).toBe(1);
+            expect(notifications[0].type).toBe(1);
+            expect(notifications[0].label).toBe("level_changed");
+            expect(notifications[0].levelId).toBe(2);
+            expect(notifications[0].previousLevel).toBe(6);
+            expect(notifications[0].currentLevel).toBe(7);
+        });
+
+    });
+    it("DelegatedListen test with advanced evenTypes filter", function() {
+        var listener = new Listener(),
+            listening,
+            flag1 = false, flag2 = false,
+            actionKey, notifications;
+
+        $.mockjax({
+            url: "/api/*",
+            responseTime: 0,
+            contentType: 'text/json',
+            responseText: [{"type":1,"label":"level_changed","levelId":2,"previousLevel":6,"currentLevel":7,"diff":1}]
+        });
+
+        // DOM Fixtures
+        setFixtures(sandbox());
+        $button = $("<button data-fungears123='dblClick: DERFS34D'></button>"); // Notice the case 'C' error. This shouldn't be a prob.
+        $("#sandbox").append($button);
+
+        listener.onGameAction(function(eventArgs) {
+            actionKey = eventArgs;
+            flag1 = true;
+        });
+        listener.onGameNotification(function(eventArgs) {
+            notifications = eventArgs;
+            flag2 = true;
+        });
+
+        var optionOverrides = $.extend(true, {}, options, { eventTypes: 'click dblclick', delegatedTarget:'#sandbox', defaultBindingName: 'data-fungears123'});
+        listener.init(optionOverrides);
+        listening = listener.delegatedListen();
+        expect(listening).toBe(true);
+
+
+        runs(function() {
+            $button.trigger('click');
+        });
+
+        waitsFor(function() {
+            return flag1;
+        }, "Failed to receive gameAction event", 100);
+        waitsFor(function() {
+            return flag2;
+        }, "Failed to receive gameNotification event", 100);
+
+        runs(function() {
+            expect(actionKey).toBe('DERFS34D');
+            expect(notifications).not.toBeFalsy();
+            expect(Array.isArray(notifications)).toBe(true);
+            expect(notifications.length).toBe(1);
+            expect(notifications[0].type).toBe(1);
+            expect(notifications[0].label).toBe("level_changed");
+            expect(notifications[0].levelId).toBe(2);
+            expect(notifications[0].previousLevel).toBe(6);
+            expect(notifications[0].currentLevel).toBe(7);
+        });
+
+    });
+
+    it("Dispose test", function() {
+        var listener = new Listener();
+        var optionOverrides = $.extend(true, {}, options, { eventTypes: 'click', delegatedTarget:'#sandbox', defaultBindingName: 'data-fungearsABCDE'});
+        listener.init(optionOverrides);
+        listener.dispose();
+        expect(listener.disposed).toBe(true);
+    });
 });

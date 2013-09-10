@@ -2,11 +2,13 @@
 
 module fungears.connectors {
     var defaults: IListenerOptions = {
-	    defaultBindingAttributeName: 'data-fungears',
-		apiOptions: {},
-	    gamerId: null,
-	    gamerApiKey: null
-    };
+	        defaultBindingName: 'data-fungears',
+            eventTypes: 'click dblclick',
+            delegatedTarget: document,
+	        gamerId: null,
+	        gamerApiKey: null,
+            apiOptions: {}
+        };
 
 	/**
 	 * The Listener orchestrates the system
@@ -15,7 +17,10 @@ module fungears.connectors {
 	 * 3. It dispatch the API result (game notifications) to registered callbacks.
 	 */
     export class Listener implements IListener{
+        private subscriptions = [];
+        private disposed: boolean = false;
         private settings: IListenerOptions;
+        private bindingProvider: IBindingProvider;
         private api: IApi;
 
         constructor() {
@@ -33,14 +38,20 @@ module fungears.connectors {
             this.settings = <IListenerOptions>($.extend(true, {}, defaults, options));
 	        this.validateSettings();
             this.api.init(this.settings.apiOptions);
+            this.bindingProvider = new BindingProvider(this.settings.defaultBindingName);
 
 	        // Register events handlers
-	        pubSub.subscribe(pubSub.events.gameAction, this.handleGameAction.bind(this));
-	        pubSub.subscribe(pubSub.events.gameNotification, this.handleGameNotification.bind(this));
+	        this.subscriptions.push(pubSub.subscribe(pubSub.events.gameAction, this.handleGameAction.bind(this)));
+            this.subscriptions.push(pubSub.subscribe(pubSub.events.gameNotification, this.handleGameNotification.bind(this)));
         }
 
+        /**
+         * Listens to every gameEvents initiated by the present elements declaring a binding.
+         * @returns {boolean}
+         */
 	    public listen() {
-		    var $targets = $('['+ bindingProvider.bindingName +']');
+		    var bindingProvider = this.bindingProvider,
+                $targets = $('['+ bindingProvider.bindingName +']');
 
 		    if(!$targets || !$targets.length)
 			    return false;
@@ -55,7 +66,34 @@ module fungears.connectors {
 		    });
 		    return true;
 	    }
-	    public listenTo($obj: JQuery, eventType: string, actionKey) {
+
+        /**
+         * Listens to all present and future element declaring a binding.
+         * Filters out events not declared in the Listener settings eventTypes property.
+         * @returns {boolean}
+         */
+        public delegatedListen() {
+            var eventTypes = this.settings.eventTypes.toLowerCase(),
+                bindingProvider = this.bindingProvider;
+            $(this.settings.delegatedTarget).on(this.settings.eventTypes, '[' + bindingProvider.bindingName + ']', function(event) {
+                if (eventTypes.indexOf(event.type) === -1)
+                    return true; // do not process (but still, allow propagation)
+                var binding = bindingProvider.getBinding(this);
+                pubSub.publish(connectors.pubSub.events.gameAction, binding.actionKey);
+                return true;
+            });
+            return true;
+        }
+
+        /**
+         * Registers a gameEvent listener for a specific element.
+         * This is the case when you don't want to use declarative bindings.
+         * @param $obj
+         * @param eventType
+         * @param actionKey
+         * @returns {boolean}
+         */
+	    public listenTo($obj: JQuery, eventType: string, actionKey: string) {
 		    if(!$obj || !$obj.length || !eventType) return false;
 		    $obj.on(eventType, function() {
 			    pubSub.publish(pubSub.events.gameAction,  actionKey);
@@ -64,7 +102,8 @@ module fungears.connectors {
 	    }
 
 		/**
-		 * Registers a callback for the gameAction event.
+		 * Registers a callback which will be called after a gameEvent has been triggered
+         * and before the gameEvent is sent to the Gears Api
 		 * @param callback  The function to be called when the event is triggered
 		 * @param context   This context on to which the callback will be bound
 		 * @returns {boolean}
@@ -72,7 +111,7 @@ module fungears.connectors {
 		public onGameAction(callback, context = this) {
 			if(!callback || typeof callback !== 'function')
 				return false;
-			pubSub.subscribe(pubSub.events.gameAction, callback.bind(context));
+            this.subscriptions.push(pubSub.subscribe(pubSub.events.gameAction, callback.bind(context)));
 			return true;
 		}
 
@@ -87,11 +126,28 @@ module fungears.connectors {
 		public onGameNotification(callback, context = this) {
 			if(!callback || typeof callback !== 'function')
 				return false;
-			pubSub.subscribe(pubSub.events.gameNotification, callback.bind(context));
+            this.subscriptions.push(pubSub.subscribe(pubSub.events.gameNotification, callback.bind(context)));
 			return true;
 		}
 
-		private handleGameAction(event, actionKey) {
+        /**
+         * Dispose the current listener.
+         * Clean underlying aggregator subscriptions and other event handlers
+         */
+        public dispose() {
+            if(this.disposed)
+                return;
+            var i = 0;
+            for(i; i < this.subscriptions.length; i++) {
+                pubSub.unsubscribe(this.subscriptions[i]);
+            }
+            this.subscriptions = [];
+            this.api = null;
+            this.bindingProvider = null;
+            this.disposed = true;
+        }
+
+		private handleGameAction(actionKey) {
 			system.log("Handling event", pubSub.events.gameAction, actionKey);
 			this.api.postEvent({
 				gamerId: this.settings.gamerId,
@@ -103,7 +159,7 @@ module fungears.connectors {
 				system.log("Api post event", pubSub.events.gameAction, jqXHR, textStatus, errorThrown);
 			});
 		}
-		private handleGameNotification(event, notification) {
+		private handleGameNotification(notification) {
 			system.log("Handling event", pubSub.events.gameNotification, notification);
 
 		}

@@ -54,7 +54,19 @@ interface IApi {
     init(options?: IApiOptions);
     postEvent(gameEvent: IGameEvent);
 }
+interface IBindingResult {
+    eventTypes: string;
+    actionKey: string;
+}
+interface IBindingProvider {
+    //new(bindingName?: string);
+    getBinding(node) : IBindingResult;
+    bindingName: string;
+}
 interface IListenerOptions {
+    defaultBindingName: string;
+    eventTypes: string;
+    delegatedTarget: any;
 	apiOptions?: IApiOptions;
 	gamerId: number;
 	gamerApiKey: string;
@@ -62,6 +74,9 @@ interface IListenerOptions {
 interface IListener {
 	init(options?: IListenerOptions);
 	listen();
+    delegatedListen();
+    listenTo(obj, eventType: string, actionKey: string)
+    dispose();
 }
 interface IGameEvent {
     gamerId: number;
