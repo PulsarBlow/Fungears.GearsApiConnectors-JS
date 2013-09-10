@@ -35,5 +35,5 @@ module fungears.connectors {
             system.guard.argumentNotNull(data, "data");
             return executeAjaxRequest(url, httpMethods.POST, data, contentTypes.FORM_URLENCODED);
         }
-    };
+    }
 }
