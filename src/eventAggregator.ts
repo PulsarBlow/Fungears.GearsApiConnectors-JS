@@ -70,7 +70,7 @@ module fungears.connectors {
 		}
 
 		/**
-		 * Reverts the event aggregator to its initial state by destroying all existing subscriptions.
+		 * Reverts the event aggregator to its initial state by resetting all existing subscriptions.
 		 */
 		public reset() {
 			this.subUid = 0;
@@ -85,25 +85,28 @@ module fungears.connectors {
 	// var pubSub = new EventAggregator();
 	// pubSub.events = ...
 	// pubSub.includesIn = function() ...
-	var globalAggregator = new EventAggregator();
+	var singleton = new EventAggregator();
 	export var pubSub =  {
 		events: {
 			gameAction: 'fungears:gameAction',
 			gameNotification: 'fungears:gameNotification'
 		},
 		publish: function(event, message) {
-			return globalAggregator.publish(event, message);
+			return singleton.publish(event, message);
 		},
 		subscribe: function(event, func) {
-			return globalAggregator.subscribe(event, func);
+			return singleton.subscribe(event, func);
 		},
 		unsubscribe: function(subId) {
-			return globalAggregator.unsubscribe(subId);
+			return singleton.unsubscribe(subId);
 		},
 		includesIn: function(targetObject) {
-			targetObject.subscribe = globalAggregator.subscribe;
-			targetObject.unsubscribe = globalAggregator.unsubscribe;
-			targetObject.publish = globalAggregator.publish;
-		}
+			targetObject.subscribe = singleton.subscribe;
+			targetObject.unsubscribe = singleton.unsubscribe;
+			targetObject.publish = singleton.publish;
+		},
+        reset: function() {
+            return singleton.reset();
+        }
 	}
 }
