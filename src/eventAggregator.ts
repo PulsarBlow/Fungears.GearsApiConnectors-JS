@@ -89,7 +89,14 @@ module fungears.connectors {
 	export var pubSub =  {
 		events: {
 			gameAction: 'fungears:gameAction',
-			gameNotification: 'fungears:gameNotification'
+			gameNotification: 'fungears:gameNotification',
+            levelChanged: 'fungears:gameNotification:levelChanged',
+            achievementReceived: 'fungears:gameNotification:achievementReceived',
+            currencyReceived: 'fungears:gameNotification:currencyReceived',
+            pointReceived: 'fungears:gameNotification:pointReceived',
+            goodReceived: 'fungears:gameNotification:goodReceived',
+            engineError: 'fungears:gameNotification:error',
+            engineNotice: 'fungears:gameNotification:notice'
 		},
 		publish: function(event, message) {
 			return singleton.publish(event, message);

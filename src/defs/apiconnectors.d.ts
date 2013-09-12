@@ -64,9 +64,9 @@ interface IBindingProvider {
     bindingName: string;
 }
 interface IListenerOptions {
-    defaultBindingName: string;
-    eventTypes: string;
-    delegatedTarget: any;
+    defaultBindingName?: string;
+    eventTypes?: string;
+    delegatedTarget?: any;
 	apiOptions?: IApiOptions;
 	gamerId: number;
 	gamerApiKey: string;

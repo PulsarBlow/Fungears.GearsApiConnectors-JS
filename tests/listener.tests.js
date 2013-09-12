@@ -19,6 +19,7 @@ describe("Testing listener module", function() {
 
     afterEach(function() {
         pubSub.reset();
+        $.mockjaxClear();
     });
 
 	it("Testing Settings validation - Success", function() {
@@ -79,6 +80,7 @@ describe("Testing listener module", function() {
 
     it("Listen test", function() {
 		var listener = new Listener(),
+            $button,
 			listening,
 			flag1 = false, flag2 = false,
 			actionKey, notifications;
@@ -136,6 +138,7 @@ describe("Testing listener module", function() {
 	});
 	it("Listen test with context switch", function() {
 		var listener = new Listener(),
+            $button,
 			listening,
 			flag1 = false;
 
@@ -153,7 +156,7 @@ describe("Testing listener module", function() {
 
 		var context = new function() {
 			this.actionKey = null;
-		}
+		};
 		listener.onGameAction(function(eventArgs) {
 			this.actionKey = eventArgs;
 			flag1 = true;
@@ -178,6 +181,7 @@ describe("Testing listener module", function() {
 	});
 	it("Listen test with advanced binding and context switch", function() {
 		var listener = new Listener(),
+            $button,
 			listening,
 			flag1 = false,
 			flag2 = false,
@@ -192,13 +196,13 @@ describe("Testing listener module", function() {
 
 		// DOM Fixtures
 		setFixtures(sandbox());
-		$button = $("<button data-fungears='click dblclick: DERFS34D'></button>");
+		$button = $('<button data-fungears="click dblclick: DERFS34D"></button>');
 		$("#sandbox").append($button);
 
 		context = new function() {
 			this.actionKey = null;
 			this.notifications = null;
-		}
+		};
 		
 		listener.onGameAction(function(eventArgs) {
 			this.actionKey = eventArgs;
@@ -239,6 +243,7 @@ describe("Testing listener module", function() {
 	});
 	it("ListenTo test", function() {
 		var listener = new Listener(),
+            $button,
 			listening,
 			flag = false,
 			actionKey;
@@ -252,7 +257,7 @@ describe("Testing listener module", function() {
 
 		// DOM Fixtures
 		setFixtures(sandbox());
-		$button = $("<button id='#button'></button>");
+		$button = $('<button id="#button"></button>');
 		$("#sandbox").append($button);
 
 		listener.onGameAction(function(eventArgs) {
@@ -276,6 +281,7 @@ describe("Testing listener module", function() {
 
     it("DelegatedListen test", function() {
         var listener = new Listener(),
+            $button,
             listening,
             flag1 = false, flag2 = false,
             actionKey, notifications;
@@ -333,6 +339,7 @@ describe("Testing listener module", function() {
     });
     it("DelegatedListen test with advanced evenTypes filter", function() {
         var listener = new Listener(),
+            $button,
             listening,
             flag1 = false, flag2 = false,
             actionKey, notifications;
@@ -387,6 +394,212 @@ describe("Testing listener module", function() {
             expect(notifications[0].currentLevel).toBe(7);
         });
 
+    });
+
+    it("OnLevelChanged test", function() {
+        var listener = new Listener(),
+            $button,
+            flag = false,
+            notification;
+
+        $.mockjax({
+            url: "/api/*",
+            responseTime: 0,
+            contentType: 'text/json',
+            responseText: [{"type":1}]
+        });
+
+        // DOM Fixtures
+        setFixtures(sandbox());
+        $button = $("<button data-fungears='click: DERFS34D'></button>");
+        $("#sandbox").append($button);
+
+        listener.onLevelChanged(function(eventArgs) {
+            notification = eventArgs;
+            flag = true;
+        });
+
+        var optionOverrides = $.extend(true, {}, options, { eventTypes: 'click', delegatedTarget:'#sandbox', defaultBindingName: 'data-fungears'});
+        listener.init(optionOverrides);
+        listener.delegatedListen();
+
+        runs(function() {
+            $button.trigger('click');
+        });
+
+        waitsFor(function() {
+            return flag;
+        }, "Failed to receive event", 100);
+
+        runs(function() {
+            expect(notification).not.toBeFalsy();
+            expect(Array.isArray(notification)).toBe(false);
+            expect(notification.type).toBe(1);
+        });
+    });
+    it("OnAchievementReceived test", function() {
+        var listener = new Listener(),
+            $button,
+            flag = false,
+            notification;
+
+        $.mockjax({
+            url: "/api/*",
+            responseTime: 0,
+            contentType: 'text/json',
+            responseText: [{"type":2}]
+        });
+
+        // DOM Fixtures
+        setFixtures(sandbox());
+        $button = $("<button data-fungears='click: DERFS34D'></button>");
+        $("#sandbox").append($button);
+
+        listener.onAchievementReceived(function(eventArgs) {
+            notification = eventArgs;
+            flag = true;
+        });
+
+        var optionOverrides = $.extend(true, {}, options, { eventTypes: 'click', delegatedTarget:'#sandbox', defaultBindingName: 'data-fungears'});
+        listener.init(optionOverrides);
+        listener.delegatedListen();
+
+        runs(function() {
+            $button.trigger('click');
+        });
+
+        waitsFor(function() {
+            return flag;
+        }, "Failed to receive event", 100);
+
+        runs(function() {
+            expect(notification).not.toBeFalsy();
+            expect(Array.isArray(notification)).toBe(false);
+            expect(notification.type).toBe(2);
+        });
+    });
+    it("OnCurrencyReceived test", function() {
+        var listener = new Listener(),
+            $button,
+            flag = false,
+            notification;
+
+        $.mockjax({
+            url: "/api/*",
+            responseTime: 0,
+            contentType: 'text/json',
+            responseText: [{"type":3}]
+        });
+
+        // DOM Fixtures
+        setFixtures(sandbox());
+        $button = $("<button data-fungears='click: DERFS34D'></button>");
+        $("#sandbox").append($button);
+
+        listener.onCurrencyReceived(function(eventArgs) {
+            notification = eventArgs;
+            flag = true;
+        });
+
+        var optionOverrides = $.extend(true, {}, options, { eventTypes: 'click', delegatedTarget:'#sandbox', defaultBindingName: 'data-fungears'});
+        listener.init(optionOverrides);
+        listener.delegatedListen();
+
+        runs(function() {
+            $button.trigger('click');
+        });
+
+        waitsFor(function() {
+            return flag;
+        }, "Failed to receive event", 100);
+
+        runs(function() {
+            expect(notification).not.toBeFalsy();
+            expect(Array.isArray(notification)).toBe(false);
+            expect(notification.type).toBe(3);
+        });
+    });
+    it("OnPointReceived test", function() {
+        var listener = new Listener(),
+            $button,
+            flag = false,
+            notification;
+
+        $.mockjax({
+            url: "/api/*",
+            responseTime: 0,
+            contentType: 'text/json',
+            responseText: [{"type":4}]
+        });
+
+        // DOM Fixtures
+        setFixtures(sandbox());
+        $button = $("<button data-fungears='click: DERFS34D'></button>");
+        $("#sandbox").append($button);
+
+        listener.onPointReceived(function(eventArgs) {
+            notification = eventArgs;
+            flag = true;
+        });
+
+        var optionOverrides = $.extend(true, {}, options, { eventTypes: 'click', delegatedTarget:'#sandbox', defaultBindingName: 'data-fungears'});
+        listener.init(optionOverrides);
+        listener.delegatedListen();
+
+        runs(function() {
+            $button.trigger('click');
+        });
+
+        waitsFor(function() {
+            return flag;
+        }, "Failed to receive event", 100);
+
+        runs(function() {
+            expect(notification).not.toBeFalsy();
+            expect(Array.isArray(notification)).toBe(false);
+            expect(notification.type).toBe(4);
+        });
+    });
+    it("OnGoodReceived test", function() {
+        var listener = new Listener(),
+            $button,
+            flag = false,
+            notification;
+
+        $.mockjax({
+            url: "/api/*",
+            responseTime: 0,
+            contentType: 'text/json',
+            responseText: [{"type":5}]
+        });
+
+        // DOM Fixtures
+        setFixtures(sandbox());
+        $button = $("<button data-fungears='click: DERFS34D'></button>");
+        $("#sandbox").append($button);
+
+        listener.onGoodReceived(function(eventArgs) {
+            notification = eventArgs;
+            flag = true;
+        });
+
+        var optionOverrides = $.extend(true, {}, options, { eventTypes: 'click', delegatedTarget:'#sandbox', defaultBindingName: 'data-fungears'});
+        listener.init(optionOverrides);
+        listener.delegatedListen();
+
+        runs(function() {
+            $button.trigger('click');
+        });
+
+        waitsFor(function() {
+            return flag;
+        }, "Failed to receive event", 100);
+
+        runs(function() {
+            expect(notification).not.toBeFalsy();
+            expect(Array.isArray(notification)).toBe(false);
+            expect(notification.type).toBe(5);
+        });
     });
 
     it("Dispose test", function() {

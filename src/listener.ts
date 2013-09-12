@@ -8,6 +8,16 @@ module fungears.connectors {
 	        gamerId: null,
 	        gamerApiKey: null,
             apiOptions: {}
+        },
+        notificationTypeEventMap = {
+            "0": undefined,
+            "1": pubSub.events.levelChanged,
+            "2": pubSub.events.achievementReceived,
+            "3": pubSub.events.currencyReceived,
+            "4": pubSub.events.pointReceived,
+            "5": pubSub.events.goodReceived,
+            "70": pubSub.events.engineError,
+            "71": pubSub.events.engineNotice
         };
 
 	/**
@@ -109,30 +119,75 @@ module fungears.connectors {
 		 * @returns {boolean}
 		 */
 		public onGameAction(callback, context = this) {
-			if(!callback || typeof callback !== 'function')
-				return false;
-            this.subscriptions.push(pubSub.subscribe(pubSub.events.gameAction, callback.bind(context)));
-			return true;
+            return this.on(pubSub.events.gameAction, callback, context);
 		}
 
 		/**
 		 * Registers a callback for the gameNotification event
 		 * The gameNotification event is triggered upon the reception
-		 * of a game notification from the Gears Api
+		 * of a game notification from the Gears Api.
+         * Use this event if you want to implements your own game notification type dispatcher.
 		 * @param callback  The function to be called when the event is triggered
-		 * @param context   This context on to which the callback will be bound
+		 * @param context   This context to which the callback will be bound.
 		 * @returns {boolean}
 		 */
 		public onGameNotification(callback, context = this) {
-			if(!callback || typeof callback !== 'function')
-				return false;
-            this.subscriptions.push(pubSub.subscribe(pubSub.events.gameNotification, callback.bind(context)));
-			return true;
+            return this.on(pubSub.events.gameNotification, callback, context);
 		}
 
         /**
+         * Registers a callback which is called when a level has changed.
+         * @param callback
+         * @param context
+         * @returns {boolean}
+         */
+        public onLevelChanged(callback, context = this):boolean {
+            return this.on(pubSub.events.levelChanged, callback, context);
+        }
+
+        /**
+         * Registers a callback which is called upon reception of a new achievement.
+         * @param callback
+         * @param context
+         * @returns {boolean}
+         */
+        public onAchievementReceived(callback, context = this): boolean {
+            return this.on(pubSub.events.achievementReceived, callback, context);
+        }
+
+        /**
+         * Registers a callback which is called upon reception of some currencies.
+         * @param callback
+         * @param context
+         * @returns {boolean}
+         */
+        public onCurrencyReceived(callback, context = this): boolean {
+            return this.on(pubSub.events.currencyReceived, callback, context);
+        }
+
+        /**
+         * Registers a callback which is called upon reception of some level points.
+         * @param callback
+         * @param context
+         * @returns {boolean}
+         */
+        public onPointReceived(callback, context = this): boolean {
+            return this.on(pubSub.events.pointReceived, callback, context);
+        }
+
+        /**
+         * Registers a callback which is called upon reception of a new good.
+         * @param callback
+         * @param context
+         * @returns {boolean}
+         */
+        public onGoodReceived(callback, context = this): boolean {
+            return this.on(pubSub.events.goodReceived, callback, context);
+        }
+
+        /**
          * Dispose the current listener.
-         * Clean underlying aggregator subscriptions and other event handlers
+         * Clean underlying aggregator subscriptions and other event handlers.
          */
         public dispose() {
             if(this.disposed)
@@ -147,21 +202,35 @@ module fungears.connectors {
             this.disposed = true;
         }
 
+        //region Privates
+        private on(eventType: string, callback, context = this): boolean{
+            if(!eventType || !callback || typeof callback !== 'function')
+                return false;
+            this.subscriptions.push(pubSub.subscribe(eventType, callback.bind(context)));
+            return true;
+        }
 		private handleGameAction(actionKey) {
 			system.log("Handling event", pubSub.events.gameAction, actionKey);
 			this.api.postEvent({
 				gamerId: this.settings.gamerId,
 				gamerApiKey: this.settings.gamerApiKey,
 				actionKey: actionKey
-			}).done(function(notification) {
-					pubSub.publish(pubSub.events.gameNotification, notification);
+			}).done(function(notifications) {
+					pubSub.publish(pubSub.events.gameNotification, notifications);
 			}).fail(function(jqXHR, textStatus, errorThrown ) {
 				system.log("Api post event", pubSub.events.gameAction, jqXHR, textStatus, errorThrown);
 			});
 		}
-		private handleGameNotification(notification) {
-			system.log("Handling event", pubSub.events.gameNotification, notification);
+		private handleGameNotification(notifications) {
+			system.log("Handling event", pubSub.events.gameNotification, notifications);
+            if(!notifications) return;
 
+            // Single notification
+            var safeArray = Array.isArray(notifications) ? notifications : [notifications];
+            $.each(safeArray, (index, item) => {
+                if(notificationTypeEventMap[item.type])
+                    pubSub.publish(notificationTypeEventMap[item.type], item);
+            });
 		}
 		private validateSettings() {
 			if(!this.settings) this.throwValidationError("null object");
@@ -174,5 +243,6 @@ module fungears.connectors {
 		private throwValidationError(message: string) {
 			throw new Error("Listener settings error : {0}".format(message));
 		}
+        //endregion
     }
 }

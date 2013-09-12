@@ -1,4 +1,4 @@
-/*! GearsApiConnectorsJS - version: 0.1.3 - revision: 20130910
+/*! GearsApiConnectorsJS - version: 0.1.4 - revision: 20130912
     A cross-device, cross-platform client framework written in JavaScript and designed to make connecting to our gamification engine easy.
     Author: Fungears <support@fungears.com> (http://fungears.com)
     Repository: https://github.com/Fungears/GearsApiConnectors-JS
@@ -149,7 +149,7 @@ var fungears;
         };
 
         connectors.system = {
-            version: '0.1.1',
+            version: '0.1.4',
             noop: noop,
             log: noop,
             error: noop,
@@ -278,7 +278,14 @@ var fungears;
         connectors.pubSub = {
             events: {
                 gameAction: 'fungears:gameAction',
-                gameNotification: 'fungears:gameNotification'
+                gameNotification: 'fungears:gameNotification',
+                levelChanged: 'fungears:gameNotification:levelChanged',
+                achievementReceived: 'fungears:gameNotification:achievementReceived',
+                currencyReceived: 'fungears:gameNotification:currencyReceived',
+                pointReceived: 'fungears:gameNotification:pointReceived',
+                goodReceived: 'fungears:gameNotification:goodReceived',
+                engineError: 'fungears:gameNotification:error',
+                engineNotice: 'fungears:gameNotification:notice'
             },
             publish: function (event, message) {
                 return singleton.publish(event, message);
@@ -431,6 +438,15 @@ var fungears;
             gamerId: null,
             gamerApiKey: null,
             apiOptions: {}
+        }, notificationTypeEventMap = {
+            "0": undefined,
+            "1": connectors.pubSub.events.levelChanged,
+            "2": connectors.pubSub.events.achievementReceived,
+            "3": connectors.pubSub.events.currencyReceived,
+            "4": connectors.pubSub.events.pointReceived,
+            "5": connectors.pubSub.events.goodReceived,
+            "70": connectors.pubSub.events.engineError,
+            "71": connectors.pubSub.events.engineNotice
         };
 
         var Listener = (function () {
@@ -489,18 +505,37 @@ var fungears;
 
             Listener.prototype.onGameAction = function (callback, context) {
                 if (typeof context === "undefined") { context = this; }
-                if (!callback || typeof callback !== 'function')
-                    return false;
-                this.subscriptions.push(connectors.pubSub.subscribe(connectors.pubSub.events.gameAction, callback.bind(context)));
-                return true;
+                return this.on(connectors.pubSub.events.gameAction, callback, context);
             };
 
             Listener.prototype.onGameNotification = function (callback, context) {
                 if (typeof context === "undefined") { context = this; }
-                if (!callback || typeof callback !== 'function')
-                    return false;
-                this.subscriptions.push(connectors.pubSub.subscribe(connectors.pubSub.events.gameNotification, callback.bind(context)));
-                return true;
+                return this.on(connectors.pubSub.events.gameNotification, callback, context);
+            };
+
+            Listener.prototype.onLevelChanged = function (callback, context) {
+                if (typeof context === "undefined") { context = this; }
+                return this.on(connectors.pubSub.events.levelChanged, callback, context);
+            };
+
+            Listener.prototype.onAchievementReceived = function (callback, context) {
+                if (typeof context === "undefined") { context = this; }
+                return this.on(connectors.pubSub.events.achievementReceived, callback, context);
+            };
+
+            Listener.prototype.onCurrencyReceived = function (callback, context) {
+                if (typeof context === "undefined") { context = this; }
+                return this.on(connectors.pubSub.events.currencyReceived, callback, context);
+            };
+
+            Listener.prototype.onPointReceived = function (callback, context) {
+                if (typeof context === "undefined") { context = this; }
+                return this.on(connectors.pubSub.events.pointReceived, callback, context);
+            };
+
+            Listener.prototype.onGoodReceived = function (callback, context) {
+                if (typeof context === "undefined") { context = this; }
+                return this.on(connectors.pubSub.events.goodReceived, callback, context);
             };
 
             Listener.prototype.dispose = function () {
@@ -516,20 +551,35 @@ var fungears;
                 this.disposed = true;
             };
 
+            Listener.prototype.on = function (eventType, callback, context) {
+                if (typeof context === "undefined") { context = this; }
+                if (!eventType || !callback || typeof callback !== 'function')
+                    return false;
+                this.subscriptions.push(connectors.pubSub.subscribe(eventType, callback.bind(context)));
+                return true;
+            };
             Listener.prototype.handleGameAction = function (actionKey) {
                 connectors.system.log("Handling event", connectors.pubSub.events.gameAction, actionKey);
                 this.api.postEvent({
                     gamerId: this.settings.gamerId,
                     gamerApiKey: this.settings.gamerApiKey,
                     actionKey: actionKey
-                }).done(function (notification) {
-                    connectors.pubSub.publish(connectors.pubSub.events.gameNotification, notification);
+                }).done(function (notifications) {
+                    connectors.pubSub.publish(connectors.pubSub.events.gameNotification, notifications);
                 }).fail(function (jqXHR, textStatus, errorThrown) {
                     connectors.system.log("Api post event", connectors.pubSub.events.gameAction, jqXHR, textStatus, errorThrown);
                 });
             };
-            Listener.prototype.handleGameNotification = function (notification) {
-                connectors.system.log("Handling event", connectors.pubSub.events.gameNotification, notification);
+            Listener.prototype.handleGameNotification = function (notifications) {
+                connectors.system.log("Handling event", connectors.pubSub.events.gameNotification, notifications);
+                if (!notifications)
+                    return;
+
+                var safeArray = Array.isArray(notifications) ? notifications : [notifications];
+                $.each(safeArray, function (index, item) {
+                    if (notificationTypeEventMap[item.type])
+                        connectors.pubSub.publish(notificationTypeEventMap[item.type], item);
+                });
             };
             Listener.prototype.validateSettings = function () {
                 if (!this.settings)

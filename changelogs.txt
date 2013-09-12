@@ -1,0 +1,17 @@
+v0.1.4
+------
+
+* Easier game notification dispatching system.
+
+In the previous versions, to handle game notifications received after an api call, you had to register a callback on the onGameNotification event/method.
+Your callback had to implement the dispatch process, parsing the notification and routing it according to its type.
+
+To simplify this process, the listener is now exposing 1 event/method for each type of notification you could received from the gamification engine.
+
+onLevelChanged
+onPointReceived
+onCurrencyReceived
+onAchievementReceived
+onGoodReceived
+
+You can still use onGameNotification if you prefer to use your own implementation.
