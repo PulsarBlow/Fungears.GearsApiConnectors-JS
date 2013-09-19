@@ -89,7 +89,7 @@ module fungears.connectors {
                 if (eventTypes.indexOf(event.type) === -1)
                     return true; // do not process (but still, allow propagation)
                 var binding = bindingProvider.getBinding(this);
-                pubSub.publish(connectors.pubSub.events.gameAction, binding.actionKey);
+                pubSub.publish(pubSub.events.gameAction, binding.actionKey);
                 return true;
             });
             return true;
@@ -185,6 +185,17 @@ module fungears.connectors {
             return this.on(pubSub.events.goodReceived, callback, context);
         }
 
+        /**
+         * Triggers a gameEvent.
+         * This is an utility method (Facade) which allows your to trigger a gameEvent
+         * directly from the listener.
+         * @param actionKey
+         */
+        public trigger(actionKey): boolean {
+            if(!actionKey)
+                return false;
+            return pubSub.publish(pubSub.events.gameAction, actionKey);
+        }
         /**
          * Dispose the current listener.
          * Clean underlying aggregator subscriptions and other event handlers.

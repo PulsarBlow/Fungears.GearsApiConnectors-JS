@@ -78,7 +78,7 @@ module fungears.connectors {
     };
 
     export var system: ISystem = {
-        version: '0.1.4',
+        version: '0.1.5',
         noop: noop,
         log: noop,
         error: noop,

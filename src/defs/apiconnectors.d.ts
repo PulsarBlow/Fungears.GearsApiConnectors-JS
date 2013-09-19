@@ -76,6 +76,7 @@ interface IListener {
 	listen();
     delegatedListen();
     listenTo(obj, eventType: string, actionKey: string)
+    trigger(actionKey: string): boolean;
     dispose();
 }
 interface IGameEvent {

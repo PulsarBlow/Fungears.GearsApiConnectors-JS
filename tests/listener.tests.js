@@ -601,7 +601,57 @@ describe("Testing listener module", function() {
             expect(notification.type).toBe(5);
         });
     });
+    it("Trigger test", function() {
+        var listener = new Listener(),
+            $button,
+            listening,
+            flag1 = false, flag2 = false,
+            actionKey, notifications;
 
+        $.mockjax({
+            url: "/api/*",
+            responseTime: 0,
+            contentType: 'text/json',
+            responseText: [{"type":1,"label":"level_changed","levelId":2,"previousLevel":6,"currentLevel":7,"diff":1}]
+        });
+
+
+        listener.onGameAction(function(eventArgs) {
+            actionKey = eventArgs;
+            flag1 = true;
+        });
+        listener.onGameNotification(function(eventArgs) {
+            notifications = eventArgs;
+            flag2 = true;
+        });
+
+        var optionOverrides = $.extend(true, {}, options, { });
+        listener.init(optionOverrides);
+
+        runs(function() {
+            listener.trigger('DERFS34D')
+        });
+
+        waitsFor(function() {
+            return flag1;
+        }, "Failed to receive gameAction event", 100);
+        waitsFor(function() {
+            return flag2;
+        }, "Failed to receive gameNotification event", 100);
+
+        runs(function() {
+            expect(actionKey).toBe('DERFS34D');
+            expect(notifications).not.toBeFalsy();
+            expect(Array.isArray(notifications)).toBe(true);
+            expect(notifications.length).toBe(1);
+            expect(notifications[0].type).toBe(1);
+            expect(notifications[0].label).toBe("level_changed");
+            expect(notifications[0].levelId).toBe(2);
+            expect(notifications[0].previousLevel).toBe(6);
+            expect(notifications[0].currentLevel).toBe(7);
+        });
+
+    });
     it("Dispose test", function() {
         var listener = new Listener();
         var optionOverrides = $.extend(true, {}, options, { eventTypes: 'click', delegatedTarget:'#sandbox', defaultBindingName: 'data-fungearsABCDE'});

@@ -1,4 +1,4 @@
-/*! GearsApiConnectorsJS - version: 0.1.4 - revision: 20130912
+/*! GearsApiConnectorsJS - version: 0.1.5 - revision: 20130919
     A cross-device, cross-platform client framework written in JavaScript and designed to make connecting to our gamification engine easy.
     Author: Fungears <support@fungears.com> (http://fungears.com)
     Repository: https://github.com/Fungears/GearsApiConnectors-JS
@@ -149,7 +149,7 @@ var fungears;
         };
 
         connectors.system = {
-            version: '0.1.4',
+            version: '0.1.5',
             noop: noop,
             log: noop,
             error: noop,
@@ -488,7 +488,7 @@ var fungears;
                     if (eventTypes.indexOf(event.type) === -1)
                         return true;
                     var binding = bindingProvider.getBinding(this);
-                    connectors.pubSub.publish(fungears.connectors.pubSub.events.gameAction, binding.actionKey);
+                    connectors.pubSub.publish(connectors.pubSub.events.gameAction, binding.actionKey);
                     return true;
                 });
                 return true;
@@ -536,6 +536,12 @@ var fungears;
             Listener.prototype.onGoodReceived = function (callback, context) {
                 if (typeof context === "undefined") { context = this; }
                 return this.on(connectors.pubSub.events.goodReceived, callback, context);
+            };
+
+            Listener.prototype.trigger = function (actionKey) {
+                if (!actionKey)
+                    return false;
+                return connectors.pubSub.publish(connectors.pubSub.events.gameAction, actionKey);
             };
 
             Listener.prototype.dispose = function () {
