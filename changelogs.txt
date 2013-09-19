@@ -1,5 +1,14 @@
-v0.1.4
-------
+v0.1.5 - 20130919
+-----------------
+The listener exposes a new method : trigger(actionKey: string): boolean
+
+This allows you to manually trigger a gameEvent, passing it an actionKey, directly from the listener.
+Previously, if you wanted to manually trigger a gameEvent, you had to use the singleton
+eventAggregator instance (pubSub). This forced you to keep a reference to the pubSub.
+
+
+v0.1.4 - 20130912
+-----------------
 
 * Easier game notification dispatching system.
 

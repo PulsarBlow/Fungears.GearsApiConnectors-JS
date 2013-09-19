@@ -54,7 +54,7 @@ module fungears.connectors {
 		 * @param eventArgs
 		 * @returns {boolean}
 		 */
-		public publish(event: string, eventArgs) {
+		public publish(event: string, eventArgs): boolean {
 			if(!this.subscriptions[event]) {
 				return false;
 			}
