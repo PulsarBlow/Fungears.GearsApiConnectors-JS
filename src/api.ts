@@ -15,9 +15,6 @@ module fungears.connectors {
         accessToken:string = null;
 
     export class Api {
-        //private accessToken: string = null;
-        //private settings: ApiOptions;
-
         constructor() {
 
         }
@@ -35,43 +32,59 @@ module fungears.connectors {
         }
         private setPrefilter() {
             $.ajaxPrefilter((options, originalOptions: JQueryAjaxSettings, jqXHR: JQueryXHR) => {
+                // Apply Authorization header and retry process to API calls only
+                if(options.url.startsWith(settings.apiUrl)) {
+                    if (accessToken) {
+                        jqXHR.setRequestHeader("Authorization", "Bearer " + accessToken);
+                    }
+
+                    // Don't infinitely recurse
+                    originalOptions._retry = isNaN(originalOptions._retry)
+                        ? 1
+                        : originalOptions._retry - 1;
+                }
+
+                // save the original error callback for later
+                if (originalOptions.error)
+                    originalOptions._error = originalOptions.error;
+
+                // overwrite *current request* error callback
+                options.error = $.noop();
+
+                // setup our own deferred object to also support promises that are only invoked
+                // once all of the retry attempts have been exhausted
                 var dfd = $.Deferred();
-                // Apply filter only if we call the configured API Url or Authorization Url
-                if (options.refreshRequest ||
-                    (!options.url.startsWith(settings.apiUrl) && options.url !== settings.authUrl)) {
-                    //dfd.resolve();
-                    return;// dfd.promise(jqXHR);
-                }
+                jqXHR.done(dfd.resolve);
 
-                // Set the auth header
-                if (accessToken) {
-                    options.headers = { "Authorization": "Bearer " + accessToken };
-                }
-
-                system.log("ApiConnector AjaxPrefilter", options, originalOptions, jqXHR);
-
-                jqXHR.done((data) => {
-                    dfd.resolve(data);
-                });
+                // if the request fails, do something else yet still resolve
                 jqXHR.fail(() => {
                     var args = Array.prototype.slice.call(arguments);
-                    if (jqXHR.status === 401) {
-                        this.refreshAccessToken().then(function () {
-                            var newOptions = $.extend({}, originalOptions, {
-                                refreshRequest: true,
-                                headers: {
-                                    "Authorization": "Bearer " + accessToken // Reset the header with refreshed token
-                                }
+
+                    if ((jqXHR.status === 401 ||
+                        // IE10 bug hack (IE10 returns 0 instead of 401)
+                        // http://stackoverflow.com/questions/16081267/xmlhttprequest-status-0-instead-of-401-in-ie-10
+                        // https://connect.microsoft.com/IE/feedback/details/802602/ie-10-on-win8-does-not-assign-the-correct-httpstatus-to-xmlhttprequest-when-the-result-is-401
+                        jqXHR.status === 0)
+                        && originalOptions._retry > 0) {
+
+                        // refresh the oauth credentials for the next attempt(s)
+                        // (will be stored and returned by accessToken variable)
+                        this.refreshAccessToken().done(function () {
+                            // retry with our modified header
+                            $.ajax(originalOptions).then(dfd.resolve, dfd.reject);
+                        }).fail(function() {
+                                throw new Error("Unable to refresh access token");
                             });
-                            $.ajax(<JQueryAjaxSettings>newOptions).then(dfd.resolve, dfd.reject);
-                        }, function () {
-                            dfd.rejectWith(jqXHR, args);
-                        });
+
                     } else {
+                        // add our _error callback to our promise object
+                        if (originalOptions._error)
+                            dfd.fail(originalOptions._error);
                         dfd.rejectWith(jqXHR, args);
                     }
                 });
 
+                // NOW override the jqXHR's promise functions with our deferred
                 return dfd.promise(jqXHR);
             });
         }

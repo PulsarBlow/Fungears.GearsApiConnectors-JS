@@ -1,4 +1,4 @@
-/*! GearsApiConnectorsJS - version: 0.1.5 - revision: 20130919
+/*! GearsApiConnectorsJS - version: 0.1.6 - revision: 20130929
     A cross-device, cross-platform client framework written in JavaScript and designed to make connecting to our gamification engine easy.
     Author: Fungears <support@fungears.com> (http://fungears.com)
     Repository: https://github.com/Fungears/GearsApiConnectors-JS
@@ -149,7 +149,7 @@ var fungears;
         };
 
         connectors.system = {
-            version: '0.1.5',
+            version: '0.1.6',
             noop: noop,
             log: noop,
             error: noop,
@@ -384,36 +384,34 @@ var fungears;
             Api.prototype.setPrefilter = function () {
                 var _this = this;
                 $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
+                    if (options.url.startsWith(settings.apiUrl)) {
+                        if (accessToken) {
+                            jqXHR.setRequestHeader("Authorization", "Bearer " + accessToken);
+                        }
+
+                        originalOptions._retry = isNaN(originalOptions._retry) ? 1 : originalOptions._retry - 1;
+                    }
+
+                    if (originalOptions.error)
+                        originalOptions._error = originalOptions.error;
+
+                    options.error = $.noop();
+
                     var dfd = $.Deferred();
+                    jqXHR.done(dfd.resolve);
 
-                    if (options.refreshRequest || (!options.url.startsWith(settings.apiUrl) && options.url !== settings.authUrl)) {
-                        return;
-                    }
-
-                    if (accessToken) {
-                        options.headers = { "Authorization": "Bearer " + accessToken };
-                    }
-
-                    connectors.system.log("ApiConnector AjaxPrefilter", options, originalOptions, jqXHR);
-
-                    jqXHR.done(function (data) {
-                        dfd.resolve(data);
-                    });
                     jqXHR.fail(function () {
                         var args = Array.prototype.slice.call(arguments);
-                        if (jqXHR.status === 401) {
-                            _this.refreshAccessToken().then(function () {
-                                var newOptions = $.extend({}, originalOptions, {
-                                    refreshRequest: true,
-                                    headers: {
-                                        "Authorization": "Bearer " + accessToken
-                                    }
-                                });
-                                $.ajax(newOptions).then(dfd.resolve, dfd.reject);
-                            }, function () {
-                                dfd.rejectWith(jqXHR, args);
+
+                        if ((jqXHR.status === 401 || jqXHR.status === 0) && originalOptions._retry > 0) {
+                            _this.refreshAccessToken().done(function () {
+                                $.ajax(originalOptions).then(dfd.resolve, dfd.reject);
+                            }).fail(function () {
+                                throw new Error("Unable to refresh access token");
                             });
                         } else {
+                            if (originalOptions._error)
+                                dfd.fail(originalOptions._error);
                             dfd.rejectWith(jqXHR, args);
                         }
                     });

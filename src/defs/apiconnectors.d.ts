@@ -8,6 +8,10 @@ interface String {
     startsWith(str: string): boolean;
     format(...args): string;
 }
+interface JQueryAjaxSettings {
+    _retry?: number;
+    _error?: any;
+}
 interface IGuard {
     argumentNotNull(argValue: any, argName: string);
     argumentNotNullOrEmpty(argValue: string, argName: string);

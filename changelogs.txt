@@ -1,3 +1,8 @@
+v0.1.6 - 20130929
+-----------------
+Fixes #1 : Access token refresh fails on IE10
+Applied a temporary pseudo fix until IE is patched.
+
 v0.1.5 - 20130919
 -----------------
 The listener exposes a new method : trigger(actionKey: string): boolean
