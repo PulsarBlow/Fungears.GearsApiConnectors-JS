@@ -1,4 +1,4 @@
-**GearsApi Connectors** is a Javascript library that makes it easier to plug your applications to the our gamification engine API (aka GearsApi)
+**GearsApi Connectors** is a Javascript library that makes it easier to plug your applications to our gamification engine API (aka GearsApi)
 
 ## Getting Started
 ##### Totally new to Fungears and gamification ?  
