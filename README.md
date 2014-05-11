@@ -1,3 +1,5 @@
+[![Built with Grunt](https://cdn.gruntjs.com/builtwith.png)](http://gruntjs.com/)
+
 **GearsApi Connectors** is a Javascript library that makes it easier to plug your applications to our gamification engine API (aka GearsApi)
 
 ## Getting Started
