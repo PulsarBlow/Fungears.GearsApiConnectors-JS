@@ -1,4 +1,4 @@
-[![Built with Grunt](https://cdn.gruntjs.com/builtwith.png)](http://gruntjs.com/)
+[![Dev dependencies](https://david-dm.org/Fungears/GearsApiConnectors-JS.png)](https://david-dm.org/) [![Built with Grunt](https://cdn.gruntjs.com/builtwith.png)](http://gruntjs.com/)
 
 **GearsApi Connectors** is a Javascript library that makes it easier to plug your applications to our gamification engine API (aka GearsApi)
 
