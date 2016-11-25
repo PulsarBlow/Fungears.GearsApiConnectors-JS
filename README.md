@@ -42,7 +42,7 @@ grunt
 
 ## Running the tests
 
-All test specs are in the "tests" directory and run against the [Jasmine](http://pivotal.github.io/jasmine/) testing library.  
+All test specs are in the "tests" directory and run against the [Jasmine](https://jasmine.github.io/) testing library.  
 The SpecRunner is the index.html file of the test directory. Simply open it in your browser.
 
 ## License
